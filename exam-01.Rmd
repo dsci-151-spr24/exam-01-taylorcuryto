@@ -1,6 +1,6 @@
 ---
 title: "Take Home Exam #1"
-author: "Adam J Sullivan"
+author: "Taylor Curyto"
 date: "February 24, 2024"
 output: html_document
 ---
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Academic Integrity Statement
 
-*I, \_\_\_\_\_\_\_\_\_\_\_\_, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
+*I, Taylor Curyto, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
 
 **A note on sharing / reusing code:** I am well aware that a huge volume of code is available on the web to solve any number of problems.
 For this exam you are allowed to make use of any online resources (e.g. StackOverflow) but you must explicitly cite where you obtained any code you directly use (or use as inspiration).
@@ -84,6 +84,20 @@ Don't forget that you will need to configure your user name and email for Git to
 In addition to `tidyverse`, you will need the `nycflights13` package for the data.
 You will first need to install these packages and then load them.
 
+```{r}
+
+install.packages("tidyverse")
+install.packages("nycflights13")
+
+```
+
+```{r}
+
+library(tidyverse)
+library(nycflights13)
+
+```
+
 ## The data
 
 The `nycflights13` package contains information about all flights that departed from NYC (e.g. EWR, JFK and LGA) in 2013.
@@ -98,6 +112,22 @@ The main data is in the `flights` data frame, but there are additional data sets
 
 1.  **Question 1 (10 points)** - What are the ten most common destinations for flights from NYC airports in 2013?
     Make a table that lists these in descending order of frequency and shows the number of fligts heading to each airport.
+    
+```{r}
+
+top_dest <- flights %>%
+  group_by(dest) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  head(10)
+  
+print(top_dest)
+
+```
+
+***The 10 most common destinations for flights from NYC airports in 2013 are ORD, ATL, LAX, BOS, MCO, CLT, SFO, FLL, MIA, and DCA.***
+
+***First, my approach was to group all the observations based on the destinations of each. Then we needed the summarize function to count the number of each destination and then arranged it in descending order to the 10 highest destination cities. The head function was used to get the highest 10 airport destinations only.***
 
 2.  **Question 2 (10 points)** - Which airlines have the most flights departing from NYC airports in 2013?
     Make a table that lists these in descending order of frequency and shows the number of flights for each airline.
