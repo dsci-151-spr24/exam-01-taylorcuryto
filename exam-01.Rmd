@@ -133,6 +133,24 @@ print(top_dest)
     Make a table that lists these in descending order of frequency and shows the number of flights for each airline.
     In your narrative mention the names of the airlines as well.
     *Hint:* You can use the `airlines` dataset to look up the airline name based on `carrier` code.
+    
+```{r}
+
+flights <- merge(flights, airlines, by="carrier")
+
+top_airlines <- flights %>%
+  group_by(name) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>% 
+  head(10)
+
+  
+print(top_airlines)
+
+```
+***The airlines that have the most flights departing from NYC airports in 2013 are United, JetBlue, EpressJet, Delta, American, Envoy, US Airways, Endeavor Air, Southwest, and Virgin.***
+
+***First, my approach was to merge the two datasets together based on the carrier variable so the carrier and airline names would match. Then, I decided to group all the observations based on the airline name of each. Then we needed the summarize function to count the number of each airline and then arranged it in descending order to the 10 highest airlines used. The head function was used to get the highest 10 airlines only.*** 
 
 3.  **Question 3 (10 points)** - Consider only flights that have non-missing arrival delay information.
     Your answer should include the name of the carrier in addition to the carrier code and the values asked.
