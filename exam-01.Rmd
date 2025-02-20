@@ -95,6 +95,7 @@ install.packages("nycflights13")
 
 library(tidyverse)
 library(nycflights13)
+data(flights)
 
 ```
 
@@ -160,9 +161,64 @@ print(top_airlines)
 
     b\.
     Which carrier had the lowest mean arrival delay?
+    
+```{r}
+flights %>%
+    group_by(carrier, name) %>%
+    summarise(delay = mean(arr_delay, na.rm = TRUE)) %>%
+    arrange(desc(delay)) %>% 
+    head(1)
+```
+***F9, or Frontier Airlines Inc. has the highest mean arrival delay.***
+
+***The approach I took was I grouped by the carrier and name because those are the things included. I then summarized it to find the mean of the delay and arranged it in descending order. I used the head function to get the highest value.***
+
+```{r}
+flights %>%
+    group_by(carrier, name) %>%
+    summarise(delay = mean(arr_delay, na.rm = TRUE)) %>%
+    arrange(delay) %>% 
+    head(1)
+```
+
+***AS, or Alaska Airlines Inc. has the lowest mean arrival delay.***
+
+***The approach I took was I grouped by the carrier and name because those are the things included. I then summarized it to find the mean of the delay and arranged it in ascending order. I used the head function to get the lowest value.***
+
 
 4.  **Question 4 (10 points)** - What was the mean temperature at the origin airport on the day with the highest departure delay?
     Your answer should include the name of origin airport, the date with the highest departure delay, and the mean temperature on that day.
+    
+```{r}
+
+flights <- merge(flights, weather, by= c("origin","time_hour", "year", "month", "day", "hour"))
+
+```
+```{r}
+worst <- flights %>%
+  arrange(desc(dep_delay)) %>%
+  slice(1) %>%
+  select(origin, year, month, day, dep_delay)
+
+weather_most_delayed <- worst %>%
+  left_join(weather, by = c("origin", "year", "month", "day")) %>%
+  summarise(
+    origin_airport = first(origin),
+    date = paste(first(year), first(month), first(day)),
+    mean_temp = mean(temp, na.rm = TRUE)
+  )
+
+print(weather_most_delayed)
+
+```
+```{r}
+avg_temp <- worst %>%
+  filter(day == 9) %>%
+  summarise(avg_temp = mean(temp, na.rm = TRUE))
+```
+
+`summarise()` has grouped output by 'year', 'month'. You
+can override using the `.groups` argument.
 
 5.  **Question 5 (15 points)** - Consider breaking the day into four time intervals: 12:01am-6am, 6:01am-12pm, 12:01pm-6pm, 6:01pm-12am.
 
