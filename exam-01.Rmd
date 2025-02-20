@@ -151,7 +151,7 @@ print(top_airlines)
 ```
 ***The airlines that have the most flights departing from NYC airports in 2013 are United, JetBlue, EpressJet, Delta, American, Envoy, US Airways, Endeavor Air, Southwest, and Virgin.***
 
-***First, my approach was to merge the two datasets together based on the carrier variable so the carrier and airline names would match. Then, I decided to group all the observations based on the airline name of each. Then we needed the summarize function to count the number of each airline and then arranged it in descending order to the 10 highest airlines used. The head function was used to get the highest 10 airlines only.*** 
+***First, my approach was to merge the two datasets together based on the carrier variable so the carrier and airline names would match. Then, I decided to group all the observations based on the airline name of each. Then we needed the summarize function to count the number of each airline and then arranged it in descending order to the 10 highest airlines used. The head function was used to get the highest 10 airlines only. I used past assignments to help with this question.*** 
 
 3.  **Question 3 (10 points)** - Consider only flights that have non-missing arrival delay information.
     Your answer should include the name of the carrier in addition to the carrier code and the values asked.
@@ -183,24 +183,20 @@ flights %>%
 
 ***AS, or Alaska Airlines Inc. has the lowest mean arrival delay.***
 
-***The approach I took was I grouped by the carrier and name because those are the things included. I then summarized it to find the mean of the delay and arranged it in ascending order. I used the head function to get the lowest value.***
+***The approach I took was I grouped by the carrier and name because those are the things included. I then summarized it to find the mean of the delay and arranged it in ascending order. I used the head function to get the lowest value. I used past assignments to help me with this question.***
 
 
 4.  **Question 4 (10 points)** - What was the mean temperature at the origin airport on the day with the highest departure delay?
     Your answer should include the name of origin airport, the date with the highest departure delay, and the mean temperature on that day.
     
-```{r}
 
-flights <- merge(flights, weather, by= c("origin","time_hour", "year", "month", "day", "hour"))
-
-```
 ```{r}
-worst <- flights %>%
+high_dep_delay <- flights %>%
   arrange(desc(dep_delay)) %>%
   slice(1) %>%
   select(origin, year, month, day, dep_delay)
 
-weather_most_delayed <- worst %>%
+meantemp <- high_dep_delay %>%
   left_join(weather, by = c("origin", "year", "month", "day")) %>%
   summarise(
     origin_airport = first(origin),
@@ -208,17 +204,11 @@ weather_most_delayed <- worst %>%
     mean_temp = mean(temp, na.rm = TRUE)
   )
 
-print(weather_most_delayed)
-
+print(meantemp)
 ```
-```{r}
-avg_temp <- worst %>%
-  filter(day == 9) %>%
-  summarise(avg_temp = mean(temp, na.rm = TRUE))
-```
+***The mean temperature at the origin airport on the day with the highest departure delay was 42.6575.***
 
-`summarise()` has grouped output by 'year', 'month'. You
-can override using the `.groups` argument.
+***First, I arranged it flights according to dep_delay, and then joined that dataset with the weather dataset. Finally, I summarized the dataset and only used the necessary variable names. I used the textbook for this question.***
 
 5.  **Question 5 (15 points)** - Consider breaking the day into four time intervals: 12:01am-6am, 6:01am-12pm, 12:01pm-6pm, 6:01pm-12am.
 
@@ -227,17 +217,61 @@ can override using the `.groups` argument.
 
     b\.
     Comment on how the likelihood of being delayed change throughout the day?
+    
+```{r}
+flights <- flights %>%
+  mutate(time_interval = case_when(
+    hour >= 0 & hour < 6 ~ "12:01am-6am",
+    hour >= 6 & hour < 12 ~ "6:01am-12pm",
+    hour >= 12 & hour < 18 ~ "12:01pm-6pm",
+    hour >= 18 & hour < 24 ~ "6:01pm-12am"
+  ))
+
+proportion_delayed <- flights %>%
+  mutate(is_delayed = if_else(dep_delay > 0, 1, 0)) %>% 
+  group_by(time_interval) %>%
+  summarise(proportion_delayed = mean(is_delayed, na.rm = TRUE))
+
+print(proportion_delayed)
+```
+***During night time, the delay likelihood almost doubles up to around 50%, while early mornings are less likely to get delayed.***
+
+***I first mutated the hour in flights dataset for when the integer is in a specific span of time, the new created column will put the time frame that hour was located in. I then grouped the variables to be based on these time frames and found the mean of the number of flights delayed within these time frames. I used the textbook for this course and other past assignments done.***
 
 6.  **Question 6 (15 points)** - Find the flight with the longest air time.
 
+```{r}
+longest_air_time_flight <- flights %>%
+  arrange(desc(air_time)) %>%  
+  head(1)  
+
+print(longest_air_time_flight)
+```
+
+
     a\.
     How long is this flight?
+    
+  ***13 hours and 35 minutes***
 
     b\.
     What city did it fly to?
 
+***HNL***
+
     c\.
     How many seats does the plane that flew this flight have?
+
+```{r}
+seats <- planes %>%
+  filter(tailnum == longest_air_time_flight$tailnum) %>%
+  select(seats)
+
+print(seats)
+```
+***The plane that flew this flight has 292 seats.***
+
+***I first arranged the flights based on airtime in descending order in order to find the highest airtime plane. Then I used the planes dataset to find the longest airtime flights tailnum and select the corresponding number of seats. The slides from past weeks were used to help.***
 
 7.  **Question 7 (15 pts)** - The `airports` data frame contains information on a large number of primarily American airports.
     These data include location information for these airports in the form of latitude and longitude coordinates.
@@ -247,6 +281,20 @@ can override using the `.groups` argument.
     *Hint:* You will first need to limit your analysis to the Contiguous United States.
     [This Wikipedia article](https://en.wikipedia.org/wiki/List_of_extreme_points_of_the_United_States) can help, but you're welcomed to use other resources as well.
     Make sure to cite whatever resource you use.
+    
+```{r}
+contiguous_us_airports <- airports %>%
+  filter(lon >= -125 & lon <= -66)
+
+ggplot(contiguous_us_airports, aes(x = lon)) +
+  geom_histogram(binwidth = 1, color = "black", fill = "blue") +
+  labs(title = "Distribution of Airport Longitudes in the Contiguous United States",
+       x = "Longitude",
+       y = "Frequency")
+```
+***In the wiki article, Washington has the west most point in the contiguous US and is about -125 longitude while Maine is the east most point in the contiguous US and is about -66 longitude. Since Hawaii and Alaska have different longitudes outside of this range, -66 - -125 longitude is the range of the contiguous US.So I filtered out anything out of this longitude range and created a histogram based on the frequency of the longitude.***
+
+***This graph seems somewhat skewed to the left, which means there is a lot more airports on the east coast, probably around New York and east coast area. There are a lot more cities on the east so it makes sense.***
 
 8.  **Question 8 (15 pts)** - Recreate the plot included below using the `flights` data.
     Once you have created the visualization, in no more than one paragraph, describe what you think the point of this visualization might be.
@@ -254,6 +302,24 @@ can override using the `.groups` argument.
     You will have to create `arrival` yourself, it is a categorical variable that is equal to `"ontime"` when `arr_delay <= 0` and `"delayed"` when `arr_delay > 0`.
 
 ![](img/plot-to-recreate.png)
+
+```{r}
+flights %>%
+  filter(dest %in% c("PHL", "RDU")) %>%
+  filter(month == 12) %>%
+  mutate(arrival = case_when(arr_delay <= 0 ~ "ontime", arr_delay > 0 ~ "delayed")) %>%
+  filter(!is.na(arrival)) %>%
+  ggplot(aes(x = arrival, y = dep_delay, color = dest)) +  
+  geom_boxplot() +
+  facet_grid(dest ~ origin) + 
+  labs(title = "On time performance of NYC flights", subtitle = "December 2013", 
+       y = "Departure delay", x = "Arrival", color = "Destination")
+```
+***I used our textbook as well as past assignments that we have done and the slideshows ou have given us to complete this question. I first filtered this to use only December and only use the two specific destinations. I then mutated this dataset to have a column called arrival and if the delay was longer than 0, it was delayed, otherwise ontime. I then made a plot like the ones we have done in the past, and made sure to name all the axis and titles correctly.***
+
+***The point of this visualization is to focus on 2 destinations from different NYC locations to determine the likelihood of the flight getting delayed. Maybe the point is to determine which destination would be better for a layover for example.***
+
+***Resources: textbook - https://r4ds.hadley.nz/***
 
 **Extra Credit (5 pts)** - Create a visualization that effectively shows if there is a relationship between the average daily departure delay and the average daily temperature for all three New York city airports.
 Your answer must be given in a single pipe.
